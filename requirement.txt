@@ -1,0 +1,4 @@
+aiohttp==3.9.3
+fastapi==0.110.0
+influxdb-client==1.41.0
+python-multipart==0.0.9
