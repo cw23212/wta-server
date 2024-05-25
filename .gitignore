@@ -1,5 +1,9 @@
 /serverSettingFile
-/core/*
+/core/secret
+/screenshot
+/test.sqlite
+/*.sh
+
 
 /.vscode
 # Byte-compiled / optimized / DLL files

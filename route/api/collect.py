@@ -1,26 +1,26 @@
-from fastapi import APIRouter, Depends, Request
-from typing import Any, List, Optional
+from fastapi import APIRouter, Depends, Request, UploadFile, Form
+from typing import Any, List, Optional, Annotated
+
+from core.db import influx
 
 import logging
 logger = logging.getLogger("wta."+__name__)
 
-from db import influx
-from .model import base
+from .model.dataModel import LogData
+from .service import file as fileService
 
 router = APIRouter()
 
-class LogData(base.PointModelBase):
-    sid:str
-    uid:str
-    page:str
-    type:str
-    scroll:Optional[float] = None  
-
-@router.get("/")
-def collectGet():
-    return ""
 
 @router.post("/")
 async def collectPost(datas:List[LogData]):
+    logger.debug("collect data %s", len(datas))
     await influx.write("wta",  [ i.toPoint() for i in datas] )
+    return  "success"
+
+    
+
+@router.post("/screen")
+async def screenPost(sid:Annotated[str, Form()], page:Annotated[str, Form()], file: UploadFile):    
+    await fileService.writeFile(sid,page, file)    
     return  "success"
