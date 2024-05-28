@@ -73,6 +73,14 @@ def getContent(user:userModel.UserIdRequest, content:userModel.ContentIdRequest,
     d = session.scalar(s)
     return d
 
+@withSession
+def getContentById(content:userModel.ContentIdRequest,  *,session: Session = None) -> Content:    
+    s = Select(Content)\
+        .where(Content.id == content.id)\
+        .options(joinedload(Content.chapters))
+    d = session.scalar(s)
+    return d
+
 # ------------------------
 
 @withSession
@@ -122,3 +130,4 @@ def dataGetChapterUrlBy(chapter:userModel.ChpaterIdRequest, *,session: Session =
     if chapter == None:
         raise HTTPException(status_code=403, detail="chapter not found")
     return chapter.url
+

@@ -53,7 +53,10 @@ async def read(query, columns=None):
         tables = await client.query_api().query(query)
         logger.debug(f"influx read {query} - {len(tables)}")    
         tables = tables.to_values(columns=columns)    
-        return [ i.mapping.copy() for i in tables]
+        res = [ i.mapping.copy() for i in tables]
+        for i in res:
+            del i["result"]
+        return res
     except Exception as e:        
         logger.error(e)
         raise e
