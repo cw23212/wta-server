@@ -100,10 +100,21 @@ def deleteFileNotinInflux(session:Session):
 
 def chunk(lst, n):
     it = iter(lst)
-    return iter(lambda: list(itertools.islice(it, n)), ())
+    return iter(lambda: list(itertools.islice(it, n)), [])
 
 @withSession
 def tidyFile(url:str, session:Session):
+    s = Select(Files)
+    files = session.scalars(s)
+    localFiles = list( i.name for i in RootFilePath.iterdir())
+    for i in files:
+        if i.file not in localFiles:
+            session.delete(i)
+    session.flush()
+
+
+@withSession
+def deleteFileNotinRDBMS(session:Session):
     for localFiles in chunk(RootFilePath.iterdir(), 10 ):
         s = Select(Files)\
             .where(Files.page.in_([ i.stem for i in localFiles]))
@@ -113,12 +124,13 @@ def tidyFile(url:str, session:Session):
         for i in localFiles:
             if i.stem not in dbFileNames:
                 i.unlink()
-                logger.debug("%s remove file", i.name)
+                logger.debug("remove file : %s", i.name)
         for i in dbFiles:
             if i.sid not in localFileNames:
                 session.delete(i)
-                logger.debug("%s remove file log", i.sid)
+                logger.debug("remove file log : %s", i.name)
         session.flush()
+
                 
                 
         
