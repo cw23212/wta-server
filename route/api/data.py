@@ -130,13 +130,13 @@ async def durationHistrogram(id:int):
 @router.get("/main/duration/content")
 async def durationContent(id:int):
     """
-    작품의 머문 시간 평균, 단위 초
+    작품의 모든 회차별 머문 시간 평균, 단위 초
     입력값: 작품 아이디 
     """
     contentID = userModel.ContentIdRequest(id=id)
-    chapterUrls = userService.getChaptersBy(contentID)
+    content = userService.getContentById(contentID)
     try:
-        a= await data.durationMeansBy(chapterUrls)
+        a= await data.durationMeansBy([ i.url for i in content.chapters])
         return a
     except:
         raise HTTPException(status_code=403, detail="content not found")
