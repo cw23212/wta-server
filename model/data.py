@@ -9,4 +9,6 @@ class Files(Base):
     file: Mapped[str] = mapped_column(unique=True)
     sid: Mapped[str]
     page: Mapped[str]
+    width: Mapped[str] = mapped_column(nullable=True)
+    height: Mapped[str] = mapped_column(nullable=True)
 
