@@ -1,5 +1,6 @@
 from core.db import influx
 import aiofiles
+import itertools
 
 from typing import Any, List
 from sqlalchemy.orm import  Session
@@ -9,6 +10,9 @@ from sqlalchemy import Select
 from core.db.rdbms import withSession, withSessionA
 from core.config.app_config import RootFilePath, ImageSuffix
 from model.data import Files
+
+import logging
+logger = logging.getLogger("wta."+__name__)
 
 CHUNK_SIZE = 1024 * 1024 
 
@@ -42,17 +46,15 @@ def getFileBySid(sid:str):
 def getFileMeta(url:str, session:Session) -> Files:
     s = Select(Files)\
         .where(Files.page == url)        
-    files = session.scalars(s).all()
-    if not files:
-        raise HTTPException(status_code=403, detail="file not found")   
-    if len(files) > 1:
-        tidyFile(url, session=session)
-    file = files[0]        
+    file = session.scalar(s)
+    if not file:
+        raise HTTPException(status_code=403, detail="file not found")              
     filePath = RootFilePath.joinpath(file.sid + ImageSuffix)
     if not filePath.is_file():
+        tidyFile(url, session)
         return getFileMeta(url, session)
     return file
-# case 1 : db 에 존재
+
         
 
 @withSession
@@ -96,11 +98,28 @@ def deleteFileNotinInflux(session:Session):
             _deletFile(i, session=session)
             print(f"delete {i.file}")
 
-import os
+def chunk(lst, n):
+    it = iter(lst)
+    return iter(lambda: list(itertools.islice(it, n)), ())
+
 @withSession
-def tidyFile(url:str, session:Session):    
-    s = Select(Files)\
-        .where(Files.page == url)   
-    files = session.scalars(s)
-    fileNames = { i.sid : i for i in files}
+def tidyFile(url:str, session:Session):
+    for localFiles in chunk(RootFilePath.iterdir(), 10 ):
+        s = Select(Files)\
+            .where(Files.page.in_([ i.stem for i in localFiles]))
+        dbFiles = session.scalars(s).all()
+        dbFileNames = [ i.sid for i in dbFiles]
+        localFileNames = [ i.stem for i in localFiles]
+        for i in localFiles:
+            if i.stem not in dbFileNames:
+                i.unlink()
+                logger.debug("%s remove file", i.name)
+        for i in dbFiles:
+            if i.sid not in localFileNames:
+                session.delete(i)
+                logger.debug("%s remove file log", i.sid)
+        session.flush()
+                
+                
+        
     
