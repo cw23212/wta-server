@@ -49,7 +49,7 @@ def withSessionA(f):
 def withSession(f):
     @functools.wraps(f)
     def _f(*args, **kargs):
-        if "session" in kargs:
+        if "session" in kargs or any( type(i) == Session for i in args):
             return f(*args, **kargs)
         else:
             with Session(engine, expire_on_commit=False) as session:
