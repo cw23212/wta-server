@@ -42,12 +42,12 @@ def getFileBySid(sid:str):
 def getFileMeta(url:str, session:Session) -> Files:
     s = Select(Files)\
         .where(Files.page == url)        
-    files = session.scalars(s)
+    files = session.scalars(s).all()
     if not files:
         raise HTTPException(status_code=403, detail="file not found")   
-    if len(files) >1:
+    if len(files) > 1:
         tidyFile(url, session=session)
-        file = files[0]        
+    file = files[0]        
     filePath = RootFilePath.joinpath(file.sid + ImageSuffix)
     if not filePath.is_file():
         return getFileMeta(url, session)
