@@ -31,7 +31,7 @@ import model.user
 import model.data
 def setMeta():
     engine.echo=True
-    Base.metadata.drop_all(engine)
+    # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
 

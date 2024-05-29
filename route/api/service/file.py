@@ -13,9 +13,9 @@ from model.data import Files
 CHUNK_SIZE = 1024 * 1024 
 
 @withSessionA
-async def writeFile(sid:str, page:str, file:UploadFile, *, session:Session):
+async def writeFile(sid:str, page:str,height:str, width:str, file:UploadFile, *, session:Session):
     fileName = sid + ImageSuffix
-    f = Files(file=fileName, sid=sid, page=page)    
+    f = Files(file=fileName, sid=sid, page=page, height=height, width=width)  
     session.add(f)
     await _WriteFile(fileName, file)    
 
@@ -31,17 +31,28 @@ async def _WriteFile(fileName:str, file:UploadFile):
         await file.close()
 
 
-@withSession
-def getFileByUrl(url:str, session:Session):
-    s = Select(Files)\
-        .where(Files.page == url)        
-    file = session.scalar(s)
-    if file == None:
-        raise HTTPException(status_code=403, detail="chapter not found")        
-    filePath = RootFilePath.joinpath(file.sid + ImageSuffix)
+
+def getFileBySid(sid:str):  
+    filePath = RootFilePath.joinpath(sid + ImageSuffix)
     if not filePath.is_file() :
         raise HTTPException(status_code=403, detail="file not found")        
     return filePath
+
+@withSession
+def getFileMeta(url:str, session:Session) -> Files:
+    s = Select(Files)\
+        .where(Files.page == url)        
+    files = session.scalars(s)
+    if not files:
+        raise HTTPException(status_code=403, detail="file not found")   
+    if len(files) >1:
+        tidyFile(url, session=session)
+        file = files[0]        
+    filePath = RootFilePath.joinpath(file.sid + ImageSuffix)
+    if not filePath.is_file():
+        return getFileMeta(url, session)
+    return file
+# case 1 : db 에 존재
         
 
 @withSession
@@ -85,3 +96,11 @@ def deleteFileNotinInflux(session:Session):
             _deletFile(i, session=session)
             print(f"delete {i.file}")
 
+import os
+@withSession
+def tidyFile(url:str, session:Session):    
+    s = Select(Files)\
+        .where(Files.page == url)   
+    files = session.scalars(s)
+    fileNames = { i.sid : i for i in files}
+    

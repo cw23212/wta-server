@@ -21,6 +21,10 @@ async def collectPost(datas:List[LogData]):
     
 
 @router.post("/screen")
-async def screenPost(sid:Annotated[str, Form()], page:Annotated[str, Form()], file: UploadFile):    
-    await fileService.writeFile(sid,page, file)    
+async def screenPost(sid:Annotated[str, Form()],
+                    page:Annotated[str, Form()],
+                    file: UploadFile,
+                    height:Annotated[str, Form()],
+                    width:Annotated[str, Form()],):    
+    await fileService.writeFile(sid,page, height, width, file)    
     return  "success"

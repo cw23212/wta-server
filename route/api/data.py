@@ -7,7 +7,7 @@ logger = logging.getLogger("wta."+__name__)
 
 router = APIRouter()
 
-from .service import data, userService, file
+from .service import data, userService, file as fileService
 from .model import userModel
 
 @router.get("/")
@@ -16,15 +16,24 @@ async def collectGet():
 
     return a
 
-@router.get("/screen")
-def screenGet(id:int):
+@router.get("/screen/meta")
+def screenUrlGet(id:int):
     """
-    스크린샷
+    스크린샷 메타 데이터
     입력값: 회차 아이디 
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
     chapterUrl = userService.dataGetChapterUrlBy(chapterId)
-    filePath = file.getFileByUrl(chapterUrl)
+    file = fileService.getFileMeta(chapterUrl)
+    return file
+
+@router.get("/screen/image")
+def screenImageGet(sid:str):
+    """
+    스크린샷 주소
+    입력값: sid
+    """
+    filePath = fileService.getFileBySid(sid)
     return FileResponse(filePath)
 
 
