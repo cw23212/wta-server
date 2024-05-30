@@ -295,7 +295,7 @@ base
     |> map(fn: (r)=>({{ r with _value :r["_value"]* nf  }}))
     |> histogram(bins: linearBins(start: 0.0, width: 1.0, count: n ))    
     |> difference()
-    |> map(fn: (r)=> ({{ r with "le":   if math.isInf(f: float(v:  r["le"]), sign: 0)  then  nf  else r["le"]  }}))         
+    |> map(fn: (r)=> ({{ r with "le":   if math.isInf(f: float(v:  r["le"]), sign: 0)  then  nf - 1.0  else r["le"] - 1.0  }}))         
     |> max()
     |> map(fn: (r)=>({{ r with scroll : int(v: r["le"]/nf*height )  , "height": {imageWidth} }}))
     |> keep(columns: ["scroll","height"])
