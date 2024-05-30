@@ -144,6 +144,7 @@ base =  from(bucket: "wta")
   |> range(start: -inf)
   |> filter(fn: (r) => r["_measurement"] == "measurement1")
   |> filter(fn: (r) => r["type"] == "face")
+  |> filter(fn: (r) => r["page"] == "{page}")
   |> drop(columns: ["start","_stop","_measurement"])
   |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
   |> group(columns: ["page"])
@@ -250,8 +251,7 @@ base =  from(bucket: "wta")
   |> filter(fn: (r) => r["type"] == "face")
   |> filter(fn: (r) => contains(set: serises , value:  r["page"])  ) 
   |> group()
-  |> window(every: 1d)
-  |> drop(columns: ["start","_stop","_measurement"])
+  |> window(every: 1d)  
   |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
 
 r = array.map(arr: {EXPRESSION_LIST}   , fn: (x)=>(
@@ -302,7 +302,7 @@ base
     |> difference()
     |> map(fn: (r)=> ({{ r with "le":   if math.isInf(f: float(v:  r["le"]), sign: 0)  then  nf  else r["le"]  }}))         
     |> max()
-    |> map(fn: (r)=>({{ r with scroll :r["le"]/nf*height  , "height": width}}))
+    |> map(fn: (r)=>({{ r with scroll : int(v: r["le"]/nf*height )  , "height": meta["pageWidth"] }}))
     |> keep(columns: ["scroll","height"])
 
     """

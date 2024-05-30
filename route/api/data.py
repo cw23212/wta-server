@@ -37,10 +37,10 @@ def screenImageGet(sid:str):
     return FileResponse(filePath)
 
 
-@router.get("/exp/sum/chapter")
+@router.get("/exp/mean/chapter")
 async def sumExpression(id:int):
     """
-    회차의 
+    한 회차의 평균 감정
     입력값: 회차 아이디 
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
@@ -162,14 +162,15 @@ async def viewersPerChapter(id:int):
 @router.get("/main/most/page")
 async def mostByPage(id:int):
     """
-    작품의 가장 많이 위치,
+    작품의 가장 많이 본 위치,
     입력값: 작품 아이디,
     결과: scroll-시작점, height-끝점, 단위-px
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
     chapterUrl = userService.dataGetChapterUrlBy(chapterId)
     try:
-        a= await data.mostScrollByPage(chapterUrl)        
-        return a
+        a= await data.mostScrollByPage(chapterUrl)    
+        file = fileService.getFileMeta(chapterUrl)    
+        return {"data":a, "file":file}
     except:
         raise HTTPException(status_code=403, detail="content not found")

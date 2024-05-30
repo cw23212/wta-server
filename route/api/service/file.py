@@ -109,8 +109,8 @@ def tidyFile(url:str, session:Session):
     localFiles = list( i.name for i in RootFilePath.iterdir())
     for i in files:
         if i.file not in localFiles:
-            session.delete(i)
-    session.flush()
+            session.delete(i)    
+    session.commit()
 
 
 @withSession

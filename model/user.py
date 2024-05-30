@@ -21,7 +21,7 @@ class Content(Base):
     url: Mapped[str]
     chapters: Mapped[List[Chapter]] = relationship( cascade="all, delete-orphan",)
 
-    def sortData(self, data, pageKey="page", key="id") -> None:
+    def sortData(self, data, pageKey="page", key="chapter") -> None:
         chapters = { i.url: i for i in self.chapters }
         def _f(i):
             c = chapters[i[pageKey]]
@@ -29,7 +29,7 @@ class Content(Base):
         data.sort(key=_f)
         for i in data:
             c = chapters[i[pageKey]]
-            i[key] = c.id if c else -1
+            i[key] = c
         
 
 class User(Base):
