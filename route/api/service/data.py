@@ -297,8 +297,9 @@ base
     |> difference()
     |> map(fn: (r)=> ({{ r with "le":   if math.isInf(f: float(v:  r["le"]), sign: 0)  then  nf - 1.0  else r["le"] - 1.0  }}))         
     |> max()
-    |> map(fn: (r)=>({{ r with scroll : int(v: r["le"]/nf*height )  , "height": {imageWidth} }}))
-    |> keep(columns: ["scroll","height"])
+    |> map(fn: (r)=>({{ "start" : int(v: r["le"]/nf*height )  }}))
+    |> map(fn: (r)=>({{ r with "end" : r["start"] + {imageWidth} }}))
+    
 
     """
     return influx.read(query)
