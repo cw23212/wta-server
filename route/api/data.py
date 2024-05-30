@@ -59,7 +59,8 @@ async def eyeHeatmap(id:int, width:int|None=10, height:int|None=10):
     try:    
         a= await data.pageEyeHeatmap(chapterUrl, width=width, height=height)
         return a
-    except:
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=403, detail="page not found")
 
 
@@ -109,7 +110,8 @@ async def sumExpression(id:int):
     try:
         a= await data.pageExitRate(chapterUrl)
         return a
-    except:
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=403, detail="page not found")
     
 @router.get("/main/duration/chapter")
@@ -123,7 +125,8 @@ async def durationHistrogram(id:int):
     try:
         a= await data.pageDurationHistogram(chapterUrl)
         return a
-    except:
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=403, detail="page not found")
     
     
@@ -138,7 +141,8 @@ async def durationContent(id:int):
     try:
         a= await data.durationMeansBy([ i.url for i in content.chapters])
         return a
-    except:
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=403, detail="content not found")
     
     
@@ -154,7 +158,8 @@ async def viewersPerChapter(id:int):
         a= await data.viewersPerChapter([ i.url for i in content.chapters])
         content.sortData(a)
         return a
-    except:
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=403, detail="content not found")
     
     
@@ -162,9 +167,9 @@ async def viewersPerChapter(id:int):
 @router.get("/main/most/page")
 async def mostByPage(id:int):
     """
-    작품의 가장 많이 본 위치,
+    회차의 가장 많이 본 위치,
     입력값: 작품 아이디,
-    결과: scroll-시작점, height-끝점, 단위-px
+    결과: scroll-시작점, height-끝점, 단위-px, 파일
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
     chapterUrl = userService.dataGetChapterUrlBy(chapterId)
@@ -172,5 +177,28 @@ async def mostByPage(id:int):
         file = fileService.getFileMeta(chapterUrl)    
         a= await data.mostScrollByPage(chapterUrl, file.width, file.height)
         return {"data":a, "file":file}
-    except:
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail="content not found")
+    
+
+    
+    
+@router.get("/main/most/content")
+async def mostByContent(id:int):
+    """
+    작품의 모든 회차 가장 많이 본 위치,
+    입력값: 작품 아이디,
+    결과: scroll-시작점, height-끝점, 단위-px, 파일
+    """
+    contentId = userModel.ContentIdRequest(id=id)
+    content = userService.getContentById(contentId)
+    try:
+        chapterUrl = await data.mostScrollPageByPages([ i.url for i in content.chapters])  
+        
+        file = fileService.getFileMeta(chapterUrl)    
+        a= await data.mostScrollByPage(chapterUrl, file.width, file.height)
+        return {"data":a, "file":file}
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(status_code=403, detail="content not found")

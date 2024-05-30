@@ -303,3 +303,22 @@ base
 
     """
     return influx.read(query)
+
+
+async def mostScrollPageByPages(pages:List[str]):
+    query = f"""    
+
+serises = {json.dumps(pages)}
+from(bucket: "wta")
+    |> range(start: -5d)
+    |> filter(fn: (r) => r["_measurement"] == "measurement1")
+    |> filter(fn: (r) => r["type"] == "eye"  )
+    |> filter(fn: (r) => contains(set: serises , value:  r["page"])  )
+    |> group(columns: ["page"])
+    |> count()
+    |> group()
+    |> max()
+  
+    """
+    res = await influx.read(query)
+    return res[0]["page"]
