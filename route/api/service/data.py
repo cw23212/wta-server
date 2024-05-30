@@ -273,19 +273,14 @@ union(tables: r)
     
 
 
-def mostScrollByPage(page:str):
+def mostScrollByPage(page:str, imageWidth:int, imageHeight:int):
     query = f"""    
 import "array"
 import "math"
-meta = from(bucket: "wta")
-  |> range(start: -inf)
-  |> filter(fn: (r) => r["_measurement"] == "measurement1")
-  |> filter(fn: (r) => r["type"] == "meta")
-  |> pivot(rowKey: ["sid", "_time"],columnKey: ["_field"],  valueColumn: "_value")
-   |> findRecord(fn: (key)=> key["page"] == "{page}", idx:0)
 
-width = float(v: meta["pageWidth"]) 
-height = float(v: meta["pageHeight"]) 
+
+width = {imageWidth}.0
+height = {imageHeight}.0
 nf = (height/width) 
 n = int(v: nf )
 
@@ -302,7 +297,7 @@ base
     |> difference()
     |> map(fn: (r)=> ({{ r with "le":   if math.isInf(f: float(v:  r["le"]), sign: 0)  then  nf  else r["le"]  }}))         
     |> max()
-    |> map(fn: (r)=>({{ r with scroll : int(v: r["le"]/nf*height )  , "height": meta["pageWidth"] }}))
+    |> map(fn: (r)=>({{ r with scroll : int(v: r["le"]/nf*height )  , "height": {imageWidth} }}))
     |> keep(columns: ["scroll","height"])
 
     """

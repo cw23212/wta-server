@@ -168,9 +168,9 @@ async def mostByPage(id:int):
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
     chapterUrl = userService.dataGetChapterUrlBy(chapterId)
-    try:
-        a= await data.mostScrollByPage(chapterUrl)    
+    try:  
         file = fileService.getFileMeta(chapterUrl)    
+        a= await data.mostScrollByPage(chapterUrl, file.width, file.height)
         return {"data":a, "file":file}
     except:
         raise HTTPException(status_code=403, detail="content not found")

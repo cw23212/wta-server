@@ -24,7 +24,7 @@ async def collectPost(datas:List[LogData]):
 async def screenPost(sid:Annotated[str, Form()],
                     page:Annotated[str, Form()],
                     file: UploadFile,
-                    height:Annotated[str, Form()],
-                    width:Annotated[str, Form()],):    
+                    height:Annotated[int, Form()],
+                    width:Annotated[int, Form()],):    
     await fileService.writeFile(sid,page, height, width, file)    
     return  "success"

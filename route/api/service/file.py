@@ -17,7 +17,7 @@ logger = logging.getLogger("wta."+__name__)
 CHUNK_SIZE = 1024 * 1024 
 
 @withSessionA
-async def writeFile(sid:str, page:str,height:str, width:str, file:UploadFile, *, session:Session):
+async def writeFile(sid:str, page:str,height:int, width:int, file:UploadFile, *, session:Session):
     fileName = sid + ImageSuffix
     f = Files(file=fileName, sid=sid, page=page, height=height, width=width)  
     session.add(f)
