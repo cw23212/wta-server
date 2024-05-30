@@ -312,12 +312,65 @@ serises = {json.dumps(pages)}
 from(bucket: "wta")
     |> range(start: -5d)
     |> filter(fn: (r) => r["_measurement"] == "measurement1")
-    |> filter(fn: (r) => r["type"] == "eye"  )
+    |> filter(fn: (r) => r["type"] == "scroll"  )
     |> filter(fn: (r) => contains(set: serises , value:  r["page"])  )
     |> group(columns: ["page"])
     |> count()
     |> group()
     |> max()
+  
+    """
+    res = await influx.read(query)
+    return res[0]["page"]
+
+
+
+
+def leastScrollByPage(page:str, imageWidth:int, imageHeight:int):
+    query = f"""    
+import "array"
+import "math"
+
+
+width = {imageWidth}.0
+height = {imageHeight}.0
+nf = (height/width) 
+n = int(v: nf )
+
+base = from(bucket: "wta")
+  |> range(start: -inf)
+  |> filter(fn: (r) => r["_measurement"] == "measurement1")
+  |> filter(fn: (r) => r["type"] == "scroll"  )  
+  |> filter(fn: (r) => r["page"] == "{page}"  )   
+  |> group()
+
+base 
+    |> map(fn: (r)=>({{ r with _value :r["_value"]* nf  }}))
+    |> histogram(bins: linearBins(start: 0.0, width: 1.0, count: n ))    
+    |> difference()
+    |> map(fn: (r)=> ({{ r with "le":   if math.isInf(f: float(v:  r["le"]), sign: 0)  then  nf - 1.0  else r["le"] - 1.0  }}))         
+    |> min()
+    |> map(fn: (r)=>({{ "start" : int(v: r["le"]/nf*height )  }}))
+    |> map(fn: (r)=>({{ r with "end" : r["start"] + {imageWidth} }}))
+    
+
+    """
+    return influx.read(query)
+
+
+async def leastScrollPageByPages(pages:List[str]):
+    query = f"""    
+
+serises = {json.dumps(pages)}
+from(bucket: "wta")
+    |> range(start: -5d)
+    |> filter(fn: (r) => r["_measurement"] == "measurement1")
+    |> filter(fn: (r) => r["type"] == "scroll"  )
+    |> filter(fn: (r) => contains(set: serises , value:  r["page"])  )
+    |> group(columns: ["page"])
+    |> count()
+    |> group()
+    |> min()
   
     """
     res = await influx.read(query)

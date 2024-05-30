@@ -168,7 +168,7 @@ async def viewersPerChapter(id:int):
 async def mostByPage(id:int):
     """
     회차의 가장 많이 본 위치,
-    입력값: 작품 아이디,
+    입력값: 회차 아이디,
     결과: scroll-시작점, height-끝점, 단위-px, 파일
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
@@ -194,10 +194,49 @@ async def mostByContent(id:int):
     contentId = userModel.ContentIdRequest(id=id)
     content = userService.getContentById(contentId)
     try:
-        chapterUrl = await data.mostScrollPageByPages([ i.url for i in content.chapters])  
-        
-        file = fileService.getFileMeta(chapterUrl)    
+        chapterUrl = await data.mostScrollPageByPages([ i.url for i in content.chapters])          
+        file = fileService.getFileMeta(chapterUrl)            
         a= await data.mostScrollByPage(chapterUrl, file.width, file.height)
+        return {"data":a, "file":file}
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail="content not found")
+    
+
+ 
+@router.get("/main/least/page")
+async def leastByPage(id:int):
+    """
+    회차의 가장 적게 본 위치,
+    입력값: 회차 아이디,
+    결과: scroll-시작점, height-끝점, 단위-px, 파일
+    """
+    chapterId = userModel.ChpaterIdRequest(id=id)
+    chapterUrl = userService.dataGetChapterUrlBy(chapterId)
+    try:  
+        file = fileService.getFileMeta(chapterUrl)    
+        a= await data.leastScrollByPage(chapterUrl, file.width, file.height)
+        return {"data":a, "file":file}
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail="content not found")
+    
+
+    
+    
+@router.get("/main/least/content")
+async def leastByContent(id:int):
+    """
+    작품의 모든 회차 가장 많이 본 위치,
+    입력값: 작품 아이디,
+    결과: scroll-시작점, height-끝점, 단위-px, 파일
+    """
+    contentId = userModel.ContentIdRequest(id=id)
+    content = userService.getContentById(contentId)
+    try:
+        chapterUrl = await data.leastScrollPageByPages([ i.url for i in content.chapters])          
+        file = fileService.getFileMeta(chapterUrl)            
+        a= await data.leastScrollByPage(chapterUrl, file.width, file.height)
         return {"data":a, "file":file}
     except Exception as e:
         logger.error(e)
