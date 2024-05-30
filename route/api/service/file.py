@@ -10,6 +10,7 @@ from sqlalchemy import Select
 from core.db.rdbms import withSession, withSessionA
 from core.config.app_config import RootFilePath, ImageSuffix
 from model.data import Files
+from model.user import Chapter
 
 import logging
 logger = logging.getLogger("wta."+__name__)
@@ -53,6 +54,7 @@ def getFileMeta(url:str, session:Session) -> Files:
     if not filePath.is_file():
         tidyFile(url, session)
         return getFileMeta(url, session)
+    addChapterProperty(file, session=session) 
     return file
 
         
@@ -133,5 +135,17 @@ def deleteFileNotinRDBMS(session:Session):
 
                 
                 
+
+@withSession
+def getChapterByFile(file:Files, session:Session) -> Chapter:
+    s = Select(Chapter)\
+            .where(Chapter.url == file.page)
+    r = session.scalar(s)
+    return r
         
     
+@withSession
+def addChapterProperty(file:Files, session:Session) -> None:
+    res = getChapterByFile(file, session=session)
+    file.chapter = res
+        
