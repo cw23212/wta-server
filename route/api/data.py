@@ -70,10 +70,15 @@ async def chapterEyetracknigRawDataGet(id:int):
     """
     한 회차의 아이트래킹 전체 정보, 입력 회차 id
     """   
-    chapterId = userModel.ChpaterIdRequest(id=id)
-    chapterUrl = userService.dataGetChapterUrlBy(chapterId)
-    a= await data.rawEyeByPage(chapterUrl)
-    return a
+    try:    
+        chapterId = userModel.ChpaterIdRequest(id=id)
+        chapterUrl = userService.dataGetChapterUrlBy(chapterId)
+        a= await data.rawEyeByPage(chapterUrl)
+        return a
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail=str())
+
 
 
 @router.get("/main/views")
