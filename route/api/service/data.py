@@ -9,7 +9,13 @@ from fastapi import UploadFile, HTTPException
 from core.db.rdbms import withSession, withSessionA
 from . import dataUtil
 
-_expression_list = ["neutral", "happy", "sad", "angry", "fearful", "disgusted", "surprised"] 
+_expression_list =  [
+  "기쁨",
+  "분노",
+  "불안",
+  "슬픔",
+  "중립",
+]
 EXPRESSION_LIST = json.dumps(_expression_list)
 
 
@@ -376,3 +382,23 @@ from(bucket: "wta")
     """
     res = await influx.read(query)
     return res[0]["page"]
+
+
+def expDiff():
+    query = f"""   
+    import "math"
+base =  from(bucket: "wta")
+  |> range(start: -inf)
+  |> filter(fn: (r) => r["_measurement"] == "measurement1")
+  |> filter(fn: (r) => r["type"] == "face")
+  |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
+  |> difference(columns: { EXPRESSION_LIST })  
+   |> keep(columns: { json.dumps( [i for i in _expression_list+["ratioX","ratioY"]]) })
+  |> map(fn: (r)=>({{ r with "sum" : {"+".join([ f"math.abs(x:r[\"{i}\"])" for i in _expression_list ])} }}) ) 
+  |> limit(n:10)
+  
+
+  base
+    """
+    print(query)
+    return influx.read(query)
