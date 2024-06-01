@@ -193,7 +193,7 @@ union(tables: r)
     """
     return influx.read(query)
 
-def rawEyeByPage(page:str, n:int = 1000):
+def rawEyeByPage(page:str, n:int = 3000):
     query = f"""    
 
   from(bucket: "wta")
