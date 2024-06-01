@@ -12,7 +12,7 @@ from .model import userModel
 
 @router.get("/")
 async def collectGet():
-    a= await data.sumExpressionByPage("")
+    a= "data"
 
     return a
 
@@ -37,6 +37,17 @@ def screenImageGet(sid:str):
     return FileResponse(filePath)
 
 
+
+@router.get("/exp/heatmap")
+async def sumExpression(id:int, x=4, y=10):
+    """
+    회차의 감정 구역별 평균 
+    """
+    chapterId = userModel.ChpaterIdRequest(id=id)
+    chapterUrl = userService.dataGetChapterUrlBy(chapterId)
+    a= await data.pageExpHeatmap(chapterUrl, x, y)
+    return a
+
 @router.get("/exp/mean/chapter")
 async def sumExpression(id:int):
     """
@@ -45,7 +56,7 @@ async def sumExpression(id:int):
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
     chapterUrl = userService.dataGetChapterUrlBy(chapterId)
-    a= await data.sumExpressionByPage(chapterUrl)
+    a= await data.pageExpHeatmap(chapterUrl)
     return a
 
 @router.get("/exp/most/page")

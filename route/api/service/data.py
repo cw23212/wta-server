@@ -16,7 +16,7 @@ _expression_list =  [
   "슬픔",
   "중립",
 ]
-EXPRESSION_LIST = json.dumps(_expression_list)
+EXPRESSION_LIST = json.dumps(_expression_list, ensure_ascii=False)
 
 
 async def pageDurationHistogram(page):
@@ -140,6 +140,42 @@ d = from(bucket: "wta")
 d
 
     """
+    return await influx.read(query)
+
+async def pageExpHeatmap(page, height:int=4, width:int=10):
+    query = f"""    
+ import "math"
+import "array"
+
+cw = {height}.0
+ch= {width}.0
+
+cf = (tables=<-) => {{
+rr= array.map(arr: {EXPRESSION_LIST}, fn: (x)=>(
+ tables |> mean(column:  x) |> duplicate(column: x , as: "value")  |> set(key: "_field", value: x )
+))
+r = union(tables: rr)
+return r |> pivot(rowKey: ["le"],columnKey: ["_field"],  valueColumn: "value")
+}}
+
+d = from(bucket: "wta")
+  |> range(start: -inf)
+  |> filter(fn: (r) => r["_measurement"] == "measurement1" and  r["type"] == "face" )  
+  |> filter(fn: (r) => r["page"] == "{page}")  
+  |> keep(columns: ["_time", "_field","_value"])
+  |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
+  |> group()
+  |> map(fn: (r)=> ({{r with "le": math.floor(x: r["ratioY"]*ch * cw + r["ratioX"]*cw ) }}))      
+  |> group(columns: ["le"])
+  |> cf()
+|> map(fn: (r)=> ({{ r with _value : int(v: r["value"]) , x : math.floor(x: r["le"]%cw) , y: math.floor(x: r["le"]/cw) }}))
+ |> map(fn: (r)=> ({{ r with x : (2.0*r["x"]+1.0)/(cw*2.0) , y:  (2.0*r["y"]+1.0)/(ch*2.0)  }}))
+
+
+d
+
+    """
+    print(query)
     return await influx.read(query)
 
 def sumExpressionByPage(page):
