@@ -317,7 +317,7 @@ async def mostScrollPageByPages(pages:List[str]):
 
 serises = {json.dumps(pages)}
 from(bucket: "wta")
-    |> range(start: -5d)
+  |> range(start: -inf)
     |> filter(fn: (r) => r["_measurement"] == "measurement1")
     |> filter(fn: (r) => r["type"] == "scroll"  )
     |> filter(fn: (r) => contains(set: serises , value:  r["page"])  )
@@ -370,7 +370,7 @@ async def leastScrollPageByPages(pages:List[str]):
 
 serises = {json.dumps(pages)}
 from(bucket: "wta")
-    |> range(start: -5d)
+  |> range(start: -inf)
     |> filter(fn: (r) => r["_measurement"] == "measurement1")
     |> filter(fn: (r) => r["type"] == "scroll"  )
     |> filter(fn: (r) => contains(set: serises , value:  r["page"])  )
@@ -419,3 +419,25 @@ base
 
     """    
     return influx.read(query)
+
+
+async def mostExpPageByPages(pages:List[str], exp:str):
+    query = f"""    
+
+serises = {json.dumps(pages)}
+
+  from(bucket: "wta")
+  |> range(start: -inf)
+    |> filter(fn: (r) => r["_measurement"] == "measurement1")
+    |> filter(fn: (r) => r["type"] == "face" )
+    |> filter(fn: (r) => r["_field"] == "{exp}" )
+    |> filter(fn: (r) => contains(set: serises , value:  r["page"])  )
+    |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
+    |> group(columns: ["page"])
+    |> mean(column: "{exp}")
+    |> group()
+    |> max(column: "{exp}")
+  
+    """
+    res = await influx.read(query)
+    return res[0]["page"]

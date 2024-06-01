@@ -64,6 +64,22 @@ async def mostExpScroll(id:int, exp:str):
         logger.error(e)
         raise HTTPException(status_code=403, detail="content not found")
         
+@router.get("/exp/most/content")
+async def mostExpScrollContent(id:int, exp:str):
+    """
+    작품의 모든 회차 중 가장 감정이 강한 위치
+    입력값: 회차 아이디 
+    """
+    contentId = userModel.ContentIdRequest(id=id)
+    content = userService.getContentById(contentId)
+    try:
+        chapterUrl = await data.mostExpPageByPages([ i.url for i in content.chapters], exp)          
+        file = fileService.getFileMeta(chapterUrl)            
+        a= await data.mostExpPage(chapterUrl, exp, file.width, file.height)
+        return {"data":a, "file":file}
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail="content not found")
 
 @router.get("/exp/most/happy/page")
 async def mostExpScrollHappy(id:int):
@@ -74,13 +90,28 @@ async def mostExpScrollHappy(id:int):
     return await mostExpScroll(id, "기쁨")
         
 @router.get("/exp/most/sad/page")
-async def mostExpScrollHappy(id:int):
+async def mostExpScrollSad(id:int):
     """
     회차의 가장 슬픔이 강한 위치
     입력값: 회차 아이디 
     """
     return await mostExpScroll(id, "슬픔")
         
+@router.get("/exp/most/happy/content")
+async def mostExpScrollHappyContent(id:int):
+    """
+    회차의 가장 기쁨이 강한 위치
+    입력값: 회차 아이디 
+    """
+    return await mostExpScrollContent(id, "기쁨")
+        
+@router.get("/exp/most/sad/content")
+async def mostExpScrollSadContent(id:int):
+    """
+    회차의 가장 슬픔이 강한 위치
+    입력값: 회차 아이디 
+    """
+    return await mostExpScrollContent(id, "슬픔")
 
 @router.get("/eye/heatmap/chapter")
 async def eyeHeatmap(id:int, width:int|None=10, height:int|None=10):
