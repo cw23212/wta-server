@@ -384,24 +384,6 @@ from(bucket: "wta")
     return res[0]["page"]
 
 
-def expDiff():
-    query = f"""   
-    import "math"
-base =  from(bucket: "wta")
-  |> range(start: -inf)
-  |> filter(fn: (r) => r["_measurement"] == "measurement1")
-  |> filter(fn: (r) => r["type"] == "face")
-  |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
-  |> difference(columns: { EXPRESSION_LIST })  
-   |> keep(columns: { json.dumps( [i for i in _expression_list+["ratioX","ratioY"]]) })
-  |> map(fn: (r)=>({{ r with "sum" : {"+".join([ f"math.abs(x:r[\"{i}\"])" for i in _expression_list ])} }}) ) 
-  |> limit(n:10)
-  
-
-  base
-    """
-    return influx.read(query)
-
 
     
 def mostExpPage(page:str, exp:str, imageWidth:int, imageHeight:int):
