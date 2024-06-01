@@ -400,5 +400,40 @@ base =  from(bucket: "wta")
 
   base
     """
-    print(query)
+    return influx.read(query)
+
+
+    
+def mostExpPage(page:str, exp:str, imageWidth:int, imageHeight:int):
+    query = f"""    
+import "array"
+import "math"
+
+
+width = {imageWidth}.0
+height = {imageHeight}.0
+nf = (height/width) 
+n = int(v: nf )
+
+base =  from(bucket: "wta")
+  |> range(start: -inf)
+  |> filter(fn: (r) => r["_measurement"] == "measurement1")
+  |> filter(fn: (r) => r["type"] == "face")
+  |> filter(fn: (r) => r["page"] == "{page}"  )   
+  |> filter(fn: (r) => r["_field"] == "{exp}" or r["_field"] == "ratioY" )
+  |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
+  |> rename(columns: {{"ratioY":"_value"}})
+  |> group()
+
+base 
+    |> map(fn: (r)=>({{ r with _value : math.floor(x: r["_value"]* nf )  }}))    
+    |> group(columns: ["_value"])
+    |> mean(column: "{exp}")
+    |> group()
+    |> max()
+    |> map(fn: (r)=>({{ "start" : int(v: r["_value"]/nf*height )  }}))
+    |> map(fn: (r)=>({{ r with "end" : r["start"] + {imageWidth} }}))
+    
+
+    """    
     return influx.read(query)

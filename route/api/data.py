@@ -48,6 +48,32 @@ async def sumExpression(id:int):
     a= await data.sumExpressionByPage(chapterUrl)
     return a
 
+@router.get("/exp/most/page")
+async def mostExpScroll(id:int, exp:str):
+    """
+    회차의 가장 감정이 강한 위치
+    입력값: 회차 아이디 
+    """
+    chapterId = userModel.ChpaterIdRequest(id=id)
+    chapterUrl = userService.dataGetChapterUrlBy(chapterId)
+    try:  
+        file = fileService.getFileMeta(chapterUrl)            
+        a= await data.mostExpPage(chapterUrl, exp, file.width, file.height)
+        return {"data":a, "file":file}
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=403, detail="content not found")
+        
+
+@router.get("/exp/most/happy/page")
+async def mostExpScrollHappy(id:int):
+    return await mostExpScroll(id, "기쁨")
+        
+@router.get("/exp/most/sad/page")
+async def mostExpScrollHappy(id:int):
+    return await mostExpScroll(id, "슬픔")
+        
+
 @router.get("/eye/heatmap/chapter")
 async def eyeHeatmap(id:int, width:int|None=10, height:int|None=10):
     """
