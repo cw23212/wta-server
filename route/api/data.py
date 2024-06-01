@@ -67,10 +67,18 @@ async def mostExpScroll(id:int, exp:str):
 
 @router.get("/exp/most/happy/page")
 async def mostExpScrollHappy(id:int):
+    """
+    회차의 가장 기쁨이 강한 위치
+    입력값: 회차 아이디 
+    """
     return await mostExpScroll(id, "기쁨")
         
 @router.get("/exp/most/sad/page")
 async def mostExpScrollHappy(id:int):
+    """
+    회차의 가장 슬픔이 강한 위치
+    입력값: 회차 아이디 
+    """
     return await mostExpScroll(id, "슬픔")
         
 
