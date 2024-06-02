@@ -191,7 +191,7 @@ base =  from(bucket: "wta")
   |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
   |> group(columns: ["page"])
 
-r = array.map(arr: ["neutral", "happy", "sad", "angry", "fearful", "disgusted", "surprised"] , fn: (x)=>(
+r = array.map(arr: {EXPRESSION_LIST}, fn: (x)=>(
     base |> mean(column: x)
     |> duplicate(as: "_value", column: x)
     |> set(key: "exp", value: x)
