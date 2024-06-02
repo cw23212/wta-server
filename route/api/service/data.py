@@ -178,7 +178,7 @@ d
     print(query)
     return await influx.read(query)
 
-def sumExpressionByPage(page):
+def meanExpressionByPage(page):
     query = f"""    
         import "array"
 

@@ -56,7 +56,7 @@ async def sumExpression(id:int):
     """
     chapterId = userModel.ChpaterIdRequest(id=id)
     chapterUrl = userService.dataGetChapterUrlBy(chapterId)
-    a= await data.pageExpHeatmap(chapterUrl)
+    a= await data.meanExpressionByPage(chapterUrl)
     return a
 
 @router.get("/exp/most/page")
