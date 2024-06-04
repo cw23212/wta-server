@@ -295,9 +295,10 @@ base =  from(bucket: "wta")
   |> filter(fn: (r) => r["_measurement"] == "measurement1")
   |> filter(fn: (r) => r["type"] == "face")
   |> filter(fn: (r) => contains(set: serises , value:  r["page"])  ) 
-  |> group()
-  |> window(every: 1d)  
+  |> group()  
   |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
+  |> window(every: 1d)  
+  |> tail(n:5)
 
 r = array.map(arr: {EXPRESSION_LIST}   , fn: (x)=>(
     base |> mean(column: x)
@@ -308,9 +309,12 @@ r = array.map(arr: {EXPRESSION_LIST}   , fn: (x)=>(
 
 union(tables: r)
    |> pivot(rowKey: [],columnKey: ["exp"],  valueColumn: "_value")
+  |> tail(n:5)
+   
 
 
     """
+    print(query)
     defaultValue = { i:0 for i in _expression_list}    
     # return await influx.read(query)
     return dataUtil.addRangeDate(await influx.read(query), day, defaultValue)

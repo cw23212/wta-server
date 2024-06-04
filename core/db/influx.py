@@ -14,7 +14,7 @@ logger = logging.getLogger("wta." + __name__)
 client = None
 def startClient():
     global client
-    client = InfluxDBClientAsync(url=url, token=token, org=org)
+    client = InfluxDBClientAsync(url=url, token=token, org=org, timeout=1000*60*5)
     return client
 
 
