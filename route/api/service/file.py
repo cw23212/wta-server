@@ -46,7 +46,8 @@ def getFileBySid(sid:str):
 @withSession
 def getFileMeta(url:str, session:Session) -> Files:
     s = Select(Files)\
-        .where(Files.page == url)        
+        .where(Files.page == url)\
+        .order_by(Files.id.desc())
     file = session.scalar(s)
     if not file:
         raise HTTPException(status_code=403, detail="file not found")              
