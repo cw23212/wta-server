@@ -231,7 +231,7 @@ union(tables: r)
     """
     return influx.read(query)
 
-def rawEyeByPage(page:str, n:int = 3000):
+def rawEyeByPage(page:str, n:int = 9000):
     query = f"""    
 
   from(bucket: "wta")
@@ -239,7 +239,7 @@ def rawEyeByPage(page:str, n:int = 3000):
   |> filter(fn: (r) => r["_measurement"] == "measurement1" and  r["type"] == "eye" )    
   |> filter(fn: (r) => r["page"] == "{page}" )  
   |> pivot(rowKey: ["_time"],columnKey: ["_field"],  valueColumn: "_value")
-  |> keep(columns: ["ratioX","ratioY"])
+  |> keep(columns: ["ratioX","ratioY","_time"])
   |> filter(fn: (r) => r["ratioX"] >= 0.0  and r["ratioY"] >= 0.0  )
   |> group()
   |> tail(n: {n})
