@@ -242,6 +242,7 @@ def rawEyeByPage(page:str, n:int = 9000):
   |> keep(columns: ["ratioX","ratioY","_time"])
   |> filter(fn: (r) => r["ratioX"] >= 0.0  and r["ratioY"] >= 0.0  )
   |> group()
+  |> sort(columns:["_time"], desc: true)
   |> tail(n: {n})
 
     """
